@@ -71,21 +71,28 @@ void RegisterCameraPlaceMenus()
 
             // 필요하면 Owner 지정
             Entry.Owner = GCameraPlaceOwner;
-
+            Entry.SetCommandList(GCmdList);    
             Section.AddEntry(Entry);
         }
 
-        // 콘텐츠 브라우저 우클릭
+            // 공통 컨텍스트 메뉴
         if (UToolMenu* CB = Menus->ExtendMenu("ContentBrowser.AssetContextMenu"))
         {
-            FToolMenuSection& Section =
-                CB->AddSection("CameraPlaceCtx", LOCTEXT("Ctx","CameraPlaceTool"));
+            FToolMenuSection& Section = CB->AddSection("CameraPlaceCtx", LOCTEXT("Ctx","CameraPlaceTool"));
+            FToolMenuEntry CtxEntry = FToolMenuEntry::InitMenuEntry(FCameraPlaceCommands::Get().PlaceFromCamera);
+            CtxEntry.Owner = GCameraPlaceOwner;
+            CtxEntry.SetCommandList(GCmdList);                // ✅
+            Section.AddEntry(CtxEntry);
+        }
 
-            // ✅ 컨텍스트 메뉴도 CommandInfo만 넘김
-            FToolMenuEntry Entry = FToolMenuEntry::InitMenuEntry(
-                FCameraPlaceCommands::Get().PlaceFromCamera);
-            Entry.Owner = GCameraPlaceOwner;
-            Section.AddEntry(Entry);
+        // StaticMesh 전용 컨텍스트 메뉴에도 추가 (로그 경로)
+        if (UToolMenu* CBMesh = Menus->ExtendMenu("ContentBrowser.AssetContextMenu.StaticMesh"))
+        {
+            FToolMenuSection& Section = CBMesh->AddSection("CameraPlaceCtx", LOCTEXT("CtxSM","CameraPlaceTool"));
+            FToolMenuEntry CtxEntry = FToolMenuEntry::InitMenuEntry(FCameraPlaceCommands::Get().PlaceFromCamera);
+            CtxEntry.Owner = GCameraPlaceOwner;
+            CtxEntry.SetCommandList(GCmdList);                // ✅
+            Section.AddEntry(CtxEntry);
         }
     }));
 }
