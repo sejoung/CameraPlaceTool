@@ -7,7 +7,10 @@ public class CameraPlaceTool : ModuleRules
 	public CameraPlaceTool(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-		PublicDependencyModuleNames.AddRange(new[] { "Core", "CoreUObject", "Engine", "InputCore" });
+		PublicDependencyModuleNames.AddRange(new[] {
+			"Core", "CoreUObject", "Engine", "Slate", "SlateCore"
+		});
+
 		PrivateDependencyModuleNames.AddRange(new[]
 		{
 			"Core", "CoreUObject", "Engine", "Slate", "SlateCore",
