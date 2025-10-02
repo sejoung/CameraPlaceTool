@@ -1,23 +1,14 @@
 {
-	"FileVersion": 3,
-	"Version": 1,
-	"VersionName": "1.0",
-	"FriendlyName": "CameraPlaceTool",
-	"Description": "",
-	"Category": "Other",
-	"CreatedBy": "beni",
-	"CreatedByURL": "",
-	"DocsURL": "",
-	"MarketplaceURL": "",
-	"SupportURL": "",
-	"EngineVersion": "5.4.0",
-	"CanContainContent": false,
-	"IsBetaVersion": true,
-	"Modules": [
-		{
-			"Name": "CameraPlaceTool",
-			"Type": "Editor",
-			"LoadingPhase": "Default"
-		}
-	]
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "1.0.0",
+  "FriendlyName": "CameraPlaceTool",
+  "Description": "Place selected asset from editor camera forward, aligned to view or surface",
+  "Category": "Editor",
+  "EnabledByDefault": true,
+  "CanContainContent": false,
+  "IsBetaVersion": true,
+  "Modules": [
+    { "Name": "CameraPlaceTool", "Type": "Editor", "LoadingPhase": "Default" }
+  ]
 }
