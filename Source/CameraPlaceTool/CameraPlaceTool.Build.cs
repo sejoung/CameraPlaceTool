@@ -10,7 +10,7 @@ public class CameraPlaceTool : ModuleRules
 		PublicDependencyModuleNames.AddRange(new[] {
 			"Core", "CoreUObject", "Engine", "Slate", "SlateCore"
 		});
-
+		PublicDependencyModuleNames.Add("EditorSubsystem"); // 임시 확인용
 		PrivateDependencyModuleNames.AddRange(new[] {
 			"UnrealEd", "LevelEditor", "EditorSubsystem", "ToolMenus",
 			"AssetRegistry", "InputCore", "Projects", "ContentBrowser"
