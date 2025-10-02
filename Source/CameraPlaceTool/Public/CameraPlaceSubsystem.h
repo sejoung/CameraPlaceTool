@@ -1,9 +1,8 @@
 #pragma once
 #include "CoreMinimal.h"
 
-#if WITH_EDITOR
-#include "Subsystems/EditorSubsystem.h" 
 #include "CameraPlaceSubsystem.generated.h"
+#if WITH_EDITOR
 UCLASS()
 class UCameraPlaceSubsystem : public UEditorSubsystem
 {
