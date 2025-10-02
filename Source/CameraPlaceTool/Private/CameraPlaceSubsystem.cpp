@@ -14,6 +14,24 @@
 #include "IContentBrowserSingleton.h"
 #endif
 
+static bool SnapDownToSurface(UWorld* World, const FVector& FromLocation, float DownDistance, float UpStartOffset,
+                              FVector& OutSnappedLocation, FVector& OutSurfaceNormal)
+{
+    const FVector Up = FVector::UpVector;
+    const FVector Start = FromLocation + Up * UpStartOffset;        // 살짝 위에서 시작
+    const FVector End   = Start - Up * DownDistance;                // 아래로 길게
+
+    FHitResult Hit;
+    FCollisionQueryParams Q(SCENE_QUERY_STAT(CameraPlace_SnapDown), false);
+    if (World->LineTraceSingleByChannel(Hit, Start, End, ECC_WorldStatic, Q) && Hit.bBlockingHit)
+    {
+        OutSnappedLocation = Hit.ImpactPoint;
+        OutSurfaceNormal   = Hit.ImpactNormal;
+        return true;
+    }
+    return false;
+}
+
 static UWorld* EditorWorld()
 {
     return GEditor ? GEditor->GetEditorWorldContext().World() : nullptr;
@@ -139,6 +157,41 @@ void UCameraPlaceSubsystem::PlaceSelectedFromCamera()
         // 카메라가 보는 방향(Yaw/Pitch만, Roll 0)
         const FRotator Rotation(Cam.Rotator().Pitch, Cam.Rotator().Yaw, 0.f);
         const FTransform T(Rotation, Location);
+		if (S->bSnapDownToSurface)
+		{
+    		FVector Snapped, SurfaceN;
+    		if (SnapDownToSurface(World, Location, /*DownDistance*/100000.0f, /*UpStartOffset*/50.0f, Snapped, SurfaceN))
+    		{
+        		// 표면에 살짝 띄우기
+        		Location = Snapped + SurfaceN * S->SurfaceOffset;
+
+        		// 회전: 표면에 정렬할지, 월드 업 유지할지 선택
+        		if (S->bAlignToSurface && !S->bKeepWorldUp)
+        		{
+            		// 카메라 전방을 표면 평면에 투영 → 회전 생성
+            		const FVector Up = SurfaceN.GetSafeNormal();
+                    FVector FwdOnPlane = (Fwd - FVector::DotProduct(Fwd, Up)*Up).GetSafeNormal();
+                    const FVector Right = FVector::CrossProduct(Up, FwdOnPlane).GetSafeNormal();
+                    const FMatrix M(FwdOnPlane, Right, Up, FVector::ZeroVector);
+                    const FRotator Rotation = M.Rotator();
+
+                }
+                else
+                {
+                    // 표면은 쓰되 롤은 0(월드 업 유지)
+                    const FRotator Rotation(Cam.Rotator().Pitch, Cam.Rotator().Yaw, 0.f);
+                    // Spawn 시: const FTransform T(Rotation, Location);
+                }
+            }
+        }
+
+        // 최종 스폰
+        FRotator FinalRot = (S->bAlignToSurface && !S->bKeepWorldUp)
+            ? /* 위 정렬 로직에서 만든 Rotation */ FRotator(Cam.Rotator().Pitch, Cam.Rotator().Yaw, 0.f)
+            : FRotator(Cam.Rotator().Pitch, Cam.Rotator().Yaw, 0.f);
+
+        const FTransform T(FinalRot, Location);
+
 
         AActor* NewActor = nullptr;
         if (SpawnClass)

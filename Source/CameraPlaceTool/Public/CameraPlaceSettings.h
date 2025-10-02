@@ -31,4 +31,7 @@ public:
 
     UPROPERTY(EditAnywhere, Config, Category="CameraPlace")
     bool bKeepWorldUp = false;
+
+	UPROPERTY(EditAnywhere, Config, Category="CameraPlace|Viewport")
+	bool bSnapDownToSurface = true;
 };
