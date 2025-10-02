@@ -1,7 +1,6 @@
 #include "CameraPlaceSubsystem.h"
 #include "CameraPlaceSettings.h"
 #if WITH_EDITOR
-#include "EditorSubsystem/EditorSubsystem.h"
 #include "Editor.h"
 #include "EditorViewportClient.h"
 #include "Kismet/GameplayStatics.h"

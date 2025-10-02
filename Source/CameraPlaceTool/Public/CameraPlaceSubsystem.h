@@ -1,6 +1,6 @@
 #pragma once
 #include "CoreMinimal.h"
-
+#include "Subsystems/UnrealEditorSubsystem.h"
 #include "CameraPlaceSubsystem.generated.h"
 #if WITH_EDITOR
 UCLASS()

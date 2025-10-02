@@ -11,7 +11,7 @@ public class CameraPlaceTool : ModuleRules
 		PublicDependencyModuleNames.AddRange(new[] {
 			"Core", "CoreUObject", "Engine", "Slate", "SlateCore"
 		});
-		
+		PublicDependencyModuleNames.Add("EditorSubsystem");
 		PrivateDependencyModuleNames.AddRange(new[]
 		{
 			"Core", "CoreUObject", "Engine", "Slate", "SlateCore",
