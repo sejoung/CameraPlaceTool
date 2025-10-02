@@ -1,6 +1,7 @@
 #pragma once
+#if WITH_EDITOR
 #include "CoreMinimal.h"
-#include "Subsystems/EditorSubsystem.h"
+#include "EditorSubsystem/EditorSubsystem.h"
 #include "CameraPlaceSubsystem.generated.h"
 
 UCLASS()
@@ -18,3 +19,4 @@ private:
     UObject* GetSelectedPlacableAsset(UClass*& OutSpawnClass, UStaticMesh*& OutStaticMesh) const;
     FTransform MakePlacementTransform(const FTransform& Cam, const FHitResult* Hit) const;
 };
+#endif
