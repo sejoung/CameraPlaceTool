@@ -11,12 +11,9 @@ public class CameraPlaceTool : ModuleRules
 			"Core", "CoreUObject", "Engine", "Slate", "SlateCore"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new[]
-		{
-			"Core", "CoreUObject", "Engine", "Slate", "SlateCore",
+		PrivateDependencyModuleNames.AddRange(new[] {
 			"UnrealEd", "LevelEditor", "EditorSubsystem", "ToolMenus",
-			"AssetRegistry", "InputCore", "Projects", "ContentBrowser",
-			"Blutility"
+			"AssetRegistry", "InputCore", "Projects", "ContentBrowser"
 		});
 	}
 }

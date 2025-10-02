@@ -4,7 +4,7 @@
 #include "Framework/Commands/InputChord.h"
 #include "Framework/Commands/UICommandList.h"
 #include "Framework/Commands/Commands.h"
-
+#define LOCTEXT_NAMESPACE "CameraPlaceTool"   
 class FCameraPlaceCommands : public TCommands<FCameraPlaceCommands>
 {
 public:
@@ -50,3 +50,4 @@ static void RegisterMenus()
         Section.AddMenuEntry(FCameraPlaceCommands::Get().PlaceFromCamera);
     }
 }
+#undef LOCTEXT_NAMESPACE
