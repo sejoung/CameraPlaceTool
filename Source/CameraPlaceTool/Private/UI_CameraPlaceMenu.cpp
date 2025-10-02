@@ -70,7 +70,7 @@ void RegisterCameraPlaceMenus()
                 FCameraPlaceCommands::Get().PlaceFromCamera);
 
             // 필요하면 Owner 지정
-            Entry.SetOwner(GCameraPlaceOwner);   // ✅ 여기서 Owner 세팅
+            Entry.Owner = GCameraPlaceOwner;
 
             Section.AddEntry(Entry);
         }
@@ -84,7 +84,7 @@ void RegisterCameraPlaceMenus()
             // ✅ 컨텍스트 메뉴도 CommandInfo만 넘김
             FToolMenuEntry Entry = FToolMenuEntry::InitMenuEntry(
                 FCameraPlaceCommands::Get().PlaceFromCamera);
-            Entry.SetOwner(GCameraPlaceOwner);
+            Entry.Owner = GCameraPlaceOwner;
             Section.AddEntry(Entry);
         }
     }));
