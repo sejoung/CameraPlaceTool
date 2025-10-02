@@ -9,7 +9,7 @@ public class CameraPlaceTool : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 		
 		PublicDependencyModuleNames.AddRange(new[] {
-			"Core", "CoreUObject", "Engine", "Slate", "SlateCore"
+			"Core", "CoreUObject", "Engine", "Slate", "SlateCore", "DeveloperSettings"
 		});
 		PublicDependencyModuleNames.Add("EditorSubsystem");
 		PrivateDependencyModuleNames.AddRange(new[]
