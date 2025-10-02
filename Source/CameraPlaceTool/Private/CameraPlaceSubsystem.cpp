@@ -142,10 +142,9 @@ void UCameraPlaceSubsystem::PlaceSelectedFromCamera()
 
     const UCameraPlaceSettings* S = GetDefault<UCameraPlaceSettings>();
 
-    // ✅ 뷰포트 카메라 앞 고정 배치 (레이캐스트 생략)
+    // 뷰포트 카메라 앞 고정 배치
     if (S->bPlaceDirectlyInFrontOfViewport)
     {
-        // 배치할 자산 가져오기
         UClass* SpawnClass = nullptr; UStaticMesh* Mesh = nullptr;
         UObject* Asset = GetSelectedPlacableAsset(SpawnClass, Mesh);
         if (!Asset) { UE_LOG(LogTemp, Warning, TEXT("No placable asset selected")); return; }
@@ -154,53 +153,40 @@ void UCameraPlaceSubsystem::PlaceSelectedFromCamera()
         FVector Location  = Cam.GetLocation() + Fwd * S->ViewportPlaceDistance
                                           + FVector::UpVector * S->ViewportUpOffset;
 
-        // 카메라가 보는 방향(Yaw/Pitch만, Roll 0)
-        const FRotator Rotation(Cam.Rotator().Pitch, Cam.Rotator().Yaw, 0.f);
-        const FTransform T(Rotation, Location);
-		if (S->bSnapDownToSurface)
-		{
-    		FVector Snapped, SurfaceN;
-    		if (SnapDownToSurface(World, Location, /*DownDistance*/100000.0f, /*UpStartOffset*/50.0f, Snapped, SurfaceN))
-    		{
-        		// 표면에 살짝 띄우기
-        		Location = Snapped + SurfaceN * S->SurfaceOffset;
+        // ↓↓↓ 바닥 스냅 (있다면)
+        FRotator FinalRot(Cam.Rotator().Pitch, Cam.Rotator().Yaw, 0.f); // 기본 회전(월드 업 유지)
+        if (S->bSnapDownToSurface)
+        {
+            FVector Snapped, SurfaceN;
+            if (SnapDownToSurface(World, Location, 100000.0f, 50.0f, Snapped, SurfaceN))
+            {
+                Location = Snapped + SurfaceN * S->SurfaceOffset;
 
-        		// 회전: 표면에 정렬할지, 월드 업 유지할지 선택
-        		if (S->bAlignToSurface && !S->bKeepWorldUp)
-        		{
-            		// 카메라 전방을 표면 평면에 투영 → 회전 생성
-            		const FVector Up = SurfaceN.GetSafeNormal();
-                    FVector FwdOnPlane = (Fwd - FVector::DotProduct(Fwd, Up)*Up).GetSafeNormal();
-                    const FVector Right = FVector::CrossProduct(Up, FwdOnPlane).GetSafeNormal();
-                    const FMatrix M(FwdOnPlane, Right, Up, FVector::ZeroVector);
-                    const FRotator Rotation = M.Rotator();
-
-                }
-                else
+                if (S->bAlignToSurface && !S->bKeepWorldUp)
                 {
-                    // 표면은 쓰되 롤은 0(월드 업 유지)
-                    const FRotator Rotation(Cam.Rotator().Pitch, Cam.Rotator().Yaw, 0.f);
-                    // Spawn 시: const FTransform T(Rotation, Location);
+                    // 표면 정렬 회전 계산 — 변수 이름 겹치지 않게 별도 이름 사용
+                    const FVector Up = SurfaceN.GetSafeNormal();
+                    FVector FwdOnPlane = (Fwd - FVector::DotProduct(Fwd, Up) * Up).GetSafeNormal();
+                    const FVector Right = FVector::CrossProduct(Up, FwdOnPlane).GetSafeNormal();
+                    const FMatrix Basis(FwdOnPlane, Right, Up, FVector::ZeroVector);
+                    const FRotator SurfaceRotation = Basis.Rotator();
+                    FinalRot = SurfaceRotation; // 최종 회전에 반영
                 }
+                // else: FinalRot 유지(월드 업)
             }
         }
 
-        // 최종 스폰
-        FRotator FinalRot = (S->bAlignToSurface && !S->bKeepWorldUp)
-            ? /* 위 정렬 로직에서 만든 Rotation */ FRotator(Cam.Rotator().Pitch, Cam.Rotator().Yaw, 0.f)
-            : FRotator(Cam.Rotator().Pitch, Cam.Rotator().Yaw, 0.f);
-
-        const FTransform T(FinalRot, Location);
-
+        // 👉 FTransform는 딱 한 번만 만든다
+        const FTransform SpawnTransform(FinalRot, Location);
 
         AActor* NewActor = nullptr;
         if (SpawnClass)
         {
-            NewActor = World->SpawnActor<AActor>(SpawnClass, T);
+            NewActor = World->SpawnActor<AActor>(SpawnClass, SpawnTransform);
         }
         else if (Mesh)
         {
-            AStaticMeshActor* SMA = World->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), T);
+            AStaticMeshActor* SMA = World->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), SpawnTransform);
             if (SMA)
             {
                 SMA->GetStaticMeshComponent()->SetStaticMesh(Mesh);
@@ -215,12 +201,42 @@ void UCameraPlaceSubsystem::PlaceSelectedFromCamera()
             GEditor->SelectActor(NewActor, true, true, true);
             GEditor->NoteSelectionChange();
         }
-        return; // ✅ 여기서 끝 — 아래 레이캐스트 로직은 타지 않음
+        return; // 여기서 종료
     }
 
-    // --- 기존 레이캐스트 모드 유지 ---
+    // ===== 기존 레이캐스트 모드 =====
     const FVector Start = Cam.GetLocation();
     const FVector End   = Start + Cam.GetRotation().GetForwardVector() * S->TraceDistance;
+
     FHitResult Hit; FCollisionQueryParams Params(SCENE_QUERY_STAT(CameraPlaceTrace), true);
     World->LineTraceSingleByChannel(Hit, Start, End, ECC_WorldStatic, Params);
+
+    const FTransform TraceTransform = MakePlacementTransform(Cam, Hit.bBlockingHit ? &Hit : nullptr);
+
+    UClass* SpawnClass = nullptr; UStaticMesh* Mesh = nullptr;
+    UObject* Asset = GetSelectedPlacableAsset(SpawnClass, Mesh);
+    if (!Asset) { UE_LOG(LogTemp, Warning, TEXT("No placable asset selected")); return; }
+
+    AActor* NewActor = nullptr;
+    if (SpawnClass)
+    {
+        NewActor = World->SpawnActor<AActor>(SpawnClass, TraceTransform);
+    }
+    else if (Mesh)
+    {
+        AStaticMeshActor* SMA = World->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), TraceTransform);
+        if (SMA)
+        {
+            SMA->GetStaticMeshComponent()->SetStaticMesh(Mesh);
+            SMA->SetMobility(EComponentMobility::Movable);
+            NewActor = SMA;
+        }
+    }
+
+    if (NewActor)
+    {
+        GEditor->SelectNone(false, true, false);
+        GEditor->SelectActor(NewActor, true, true, true);
+        GEditor->NoteSelectionChange();
+    }
 }
