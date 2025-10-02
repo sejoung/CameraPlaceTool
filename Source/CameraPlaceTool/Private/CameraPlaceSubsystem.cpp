@@ -122,41 +122,52 @@ void UCameraPlaceSubsystem::PlaceSelectedFromCamera()
 
     FTransform Cam; if (!GetCameraTransform(Cam)) return;
 
-    // 트레이스
     const UCameraPlaceSettings* S = GetDefault<UCameraPlaceSettings>();
-    const FVector Start = Cam.GetLocation();
-    const FVector End = Start + Cam.GetRotation().GetForwardVector() * S->TraceDistance;
 
+    // ✅ 뷰포트 카메라 앞 고정 배치 (레이캐스트 생략)
+    if (S->bPlaceDirectlyInFrontOfViewport)
+    {
+        // 배치할 자산 가져오기
+        UClass* SpawnClass = nullptr; UStaticMesh* Mesh = nullptr;
+        UObject* Asset = GetSelectedPlacableAsset(SpawnClass, Mesh);
+        if (!Asset) { UE_LOG(LogTemp, Warning, TEXT("No placable asset selected")); return; }
+
+        const FVector Fwd = Cam.GetRotation().GetForwardVector();
+        FVector Location  = Cam.GetLocation() + Fwd * S->ViewportPlaceDistance
+                                          + FVector::UpVector * S->ViewportUpOffset;
+
+        // 카메라가 보는 방향(Yaw/Pitch만, Roll 0)
+        const FRotator Rotation(Cam.Rotator().Pitch, Cam.Rotator().Yaw, 0.f);
+        const FTransform T(Rotation, Location);
+
+        AActor* NewActor = nullptr;
+        if (SpawnClass)
+        {
+            NewActor = World->SpawnActor<AActor>(SpawnClass, T);
+        }
+        else if (Mesh)
+        {
+            AStaticMeshActor* SMA = World->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), T);
+            if (SMA)
+            {
+                SMA->GetStaticMeshComponent()->SetStaticMesh(Mesh);
+                SMA->SetMobility(EComponentMobility::Movable);
+                NewActor = SMA;
+            }
+        }
+
+        if (NewActor)
+        {
+            GEditor->SelectNone(false, true, false);
+            GEditor->SelectActor(NewActor, true, true, true);
+            GEditor->NoteSelectionChange();
+        }
+        return; // ✅ 여기서 끝 — 아래 레이캐스트 로직은 타지 않음
+    }
+
+    // --- 기존 레이캐스트 모드 유지 ---
+    const FVector Start = Cam.GetLocation();
+    const FVector End   = Start + Cam.GetRotation().GetForwardVector() * S->TraceDistance;
     FHitResult Hit; FCollisionQueryParams Params(SCENE_QUERY_STAT(CameraPlaceTrace), true);
     World->LineTraceSingleByChannel(Hit, Start, End, ECC_WorldStatic, Params);
-
-    // 배치할 자산
-    UClass* SpawnClass = nullptr; UStaticMesh* Mesh = nullptr;
-    UObject* Asset = GetSelectedPlacableAsset(SpawnClass, Mesh);
-    if (!Asset) { UE_LOG(LogTemp, Warning, TEXT("No placable asset selected")); return; }
-
-    const FTransform T = MakePlacementTransform(Cam, Hit.bBlockingHit ? &Hit : nullptr);
-
-    AActor* NewActor = nullptr;
-    if (SpawnClass)
-    {
-        NewActor = World->SpawnActor<AActor>(SpawnClass, T);
-    }
-    else if (Mesh)
-    {
-        AStaticMeshActor* SMA = World->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), T);
-        if (SMA)
-        {
-            SMA->GetStaticMeshComponent()->SetStaticMesh(Mesh);
-            SMA->SetMobility(EComponentMobility::Movable);
-            NewActor = SMA;
-        }
-    }
-
-    if (NewActor)
-    {
-        GEditor->SelectNone(false, true, false);
-        GEditor->SelectActor(NewActor, true, true, true);
-        GEditor->NoteSelectionChange();
-    }
 }
