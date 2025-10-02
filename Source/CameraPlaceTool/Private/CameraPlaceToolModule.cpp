@@ -1,6 +1,6 @@
 #include "Modules/ModuleManager.h"
 #include "ToolMenus.h"
-#include "UI_CameraPlaceMenu.cpp" // 간단화를 위해 포함
+#include "UI_CameraPlaceMenu.h"
 
 class FCameraPlaceToolModule : public IModuleInterface
 {

@@ -1,8 +1,11 @@
 #include "CameraPlaceSubsystem.h"
 #include "CameraPlaceSettings.h"
 #if WITH_EDITOR
+#include "Selection.h"                 // USelection
+#include "LevelEditorViewport.h"       // FLevelEditorViewportClient
+#include "UnrealClient.h"              // FViewportCameraTransform
+#include "EditorViewportClient.h"      // (이미 있었으면 유지)
 #include "Editor.h"
-#include "EditorViewportClient.h"
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraActor.h"
 #include "Engine/StaticMeshActor.h"
