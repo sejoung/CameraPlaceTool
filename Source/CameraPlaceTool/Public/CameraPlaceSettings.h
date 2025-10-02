@@ -12,18 +12,10 @@ class CAMERAPLACETOOL_API UCameraPlaceSettings : public UDeveloperSettings
     GENERATED_BODY()
 public:
     // Project Settings 좌측 트리 경로
-    virtual FName GetContainerName() const override { return TEXT("Project"); }
-    virtual FName GetCategoryName()  const override { return TEXT("Plugins"); }
-    virtual FName GetSectionName()   const override { return TEXT("CameraPlace"); }
+    virtual FName GetCategoryName() const override { return TEXT("Plugins"); }
+    virtual FName GetSectionName()  const override { return TEXT("CameraPlace"); }
 
-    // ▶ 한글 UI에서도 보이도록 섹션 라벨/설명 제공
-    virtual FText GetSectionText() const override
-    { return NSLOCTEXT("CameraPlaceSettings", "SectionText", "Camera Place"); }
-
-    virtual FText GetSectionDescription() const override
-    { return NSLOCTEXT("CameraPlaceSettings", "SectionDesc",
-        "Place selected assets in front of the viewport camera with snap-to-ground, "
-        "surface alignment, and distance controls."); }
+    /* ---------- Viewport (앞 고정 배치) ---------- */
 
     /** 뷰포트 카메라 앞 고정 배치 사용 */
     UPROPERTY(EditAnywhere, Config, Category="Viewport")
