@@ -4,7 +4,7 @@
 class UEditorSubsystem;
 
 #include "CameraPlaceSubsystem.generated.h"
-
+#if WITH_EDITOR
 UCLASS()
 class UCameraPlaceSubsystem : public UEditorSubsystem
 {
@@ -20,3 +20,4 @@ private:
     UObject* GetSelectedPlacableAsset(UClass*& OutSpawnClass, UStaticMesh*& OutStaticMesh) const;
     FTransform MakePlacementTransform(const FTransform& Cam, const FHitResult* Hit) const;
 };
+#endif
