@@ -1,5 +1,6 @@
 #include "CameraPlaceSubsystem.h"
 #include "CameraPlaceSettings.h"
+#if WITH_EDITOR
 #include "Subsystems/EditorSubsystem.h"
 #include "Editor.h"
 #include "EditorViewportClient.h"
@@ -9,6 +10,7 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "ContentBrowserModule.h"
 #include "IContentBrowserSingleton.h"
+#endif
 
 static UWorld* EditorWorld()
 {
